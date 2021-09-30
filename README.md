@@ -11,3 +11,6 @@ Benchmark between:
 - C++ pure 
 - C++ with optimisation 
 - C++ with approximation
+
+More:
+- Benchmark with GPU 
