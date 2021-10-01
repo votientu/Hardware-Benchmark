@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     struct timeval start, end;
     gettimeofday(&start, NULL);
 
-    process(height, width, data_in, data_out, strcmp(argv[2], "RGB")); // flip=0 if RGB, !=0 if BGR
+    process(height, width, data_in, data_out);
 
     gettimeofday(&end, NULL);
     long seconds = (end.tv_sec - start.tv_sec);
