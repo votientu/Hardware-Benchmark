@@ -4,11 +4,18 @@
 #include <sys/time.h>   // for gettimeofday()
 #include <omp.h>        // openmp
 
+
+int number_of_threads = 1;
+
+
 // Convert BGR image to RGB, pixel type from int to float and rescale to 0.0-1.0
-void process(int height, int width, unsigned char* data_in) {
+void process(int height, int width, unsigned char* data_in, float* data_out) {
+    int j;
+    omp_set_dynamic(0); 
+    omp_set_num_threads(number_of_threads);
     #pragma omp parallel for private(j)     // To avoid race condition among the threads
-    for (i = 0; i < height; i++)
-    for(j = 0; j < width; j++) {
+    for (int i = 0; i < height; i++)
+    for (j = 0; j < width; j++) {
         data_out[i*width*3+j*3+0] = (float) data_in[i*width*3+j*3+2] * (1 / 255.0);
         data_out[i*width*3+j*3+1] = (float) data_in[i*width*3+j*3+1] * (1 / 255.0);
         data_out[i*width*3+j*3+2] = (float) data_in[i*width*3+j*3+0] * (1 / 255.0);
@@ -16,14 +23,14 @@ void process(int height, int width, unsigned char* data_in) {
 }
 
 
-int test(int height, int width, float *data_in, float *data_out) {
-    for (i = 0; i < height; i++)
-    for(j = 0; j < width; j++) {
+int test(int height, int width, unsigned char *data_in, float *data_out) {
+    for (int i = 0; i < height; i++)
+    for (int j = 0; j < width; j++) {
         if (abs(data_out[i*width*3+j*3+0] - data_in[i*width*3+j*3+0]) > 1e-2 ||
             abs(data_out[i*width*3+j*3+1] - data_in[i*width*3+j*3+1]) > 1e-2 || 
             abs(data_out[i*width*3+j*3+2] - data_in[i*width*3+j*3+2]) > 1e-2) 
         {
-            printf("Pixel at [%d, %d] are not equal (%.3f, %.3f).\n", i, j, data_out[i*width*3+j*3+0], data_in[i*width*3+j*3+0]);
+            printf("Pixel at [%d, %d] are not equal (%.3f, %d).\n", i, j, data_out[i*width*3+j*3+0], data_in[i*width*3+j*3+0]);
             return -1;
         }
     }
@@ -37,11 +44,14 @@ int test(int height, int width, float *data_in, float *data_out) {
 // Convert BRG image to RGB and pixel type from int to float
 int main(int argc, char **argv)
 {
-   if (argc != 3) {
-        printf("Usage 1: program_name <height> <width>\n");
+    if (argc != 3 && argc !=4) {
+        printf("Usage 1: program_name <height> <width> <number_of_threads>\n");
         return -1;
     }
     
+    if (argc==4)
+        number_of_threads = atoi(argv[3]);
+
     int height = atoi(argv[1]);
     int width = atoi(argv[2]);
     unsigned char *data_in = new unsigned char[height*width*3];
